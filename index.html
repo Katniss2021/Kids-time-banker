@@ -571,12 +571,34 @@ function load() {
 
 // ── Audio ──
 let audioCtx = null;
+let keepAliveSource = null;
+
 function ensureAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
-function beep(freq = 880, dur = 0.2, vol = 0.4) {
+
+// 游戏计时期间保持 AudioContext 存活（防止 iOS 挂起）
+function startAudioKeepAlive() {
   try {
     ensureAudio();
+    audioCtx.resume();
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    keepAliveSource = audioCtx.createBufferSource();
+    keepAliveSource.buffer = buf;
+    keepAliveSource.loop = true;
+    keepAliveSource.connect(audioCtx.destination);
+    keepAliveSource.start();
+  } catch(e) {}
+}
+
+function stopAudioKeepAlive() {
+  try { if (keepAliveSource) { keepAliveSource.stop(); keepAliveSource = null; } } catch(e) {}
+}
+
+async function beep(freq = 880, dur = 0.2, vol = 0.4) {
+  try {
+    ensureAudio();
+    await audioCtx.resume();
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
     o.frequency.value = freq;
@@ -694,6 +716,7 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
 
   requestWakeLock();
   requestNotificationPermission();
+  startAudioKeepAlive();
   document.getElementById('game-setup').style.display = 'none';
   document.getElementById('countdown-area').classList.add('active');
   render(); updateRing();
@@ -716,6 +739,7 @@ document.getElementById('stop-game-btn').addEventListener('click', () => {
 function endGame(early, refund = 0) {
   clearInterval(gameTimer.intervalId);
   gameTimer.active = false;
+  stopAudioKeepAlive();
   if (early && refund > 0) { state.balance += refund; save(); }
   document.getElementById('countdown-area').classList.remove('active');
   document.getElementById('game-setup').style.display = '';
