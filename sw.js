@@ -1,7 +1,9 @@
-const CACHE_NAME = 'kids-time-banker-v1';
+const CACHE_NAME = 'kids-time-banker-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
+  './sw.js',
+  './pokemon-background.png',
   './icon-192.png',
   './icon-512.png'
 ];
