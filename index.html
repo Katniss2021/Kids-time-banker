@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#5DBB63">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="时间银行">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Kids Time Banker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky:    #A8D8EA;
+      --green:  #5DBB63;
+      --green2: #4aab50;
+      --yellow: #F5C842;
+      --orange: #F5823C;
+      --red:    #E8585A;
+      --blue:   #4f8ef7;
+      --card:   rgba(255,255,255,0.93);
+      --card-border: rgba(255,255,255,0.6);
+      --text:   #2d3436;
+      --muted:  #636e72;
+      --radius: 20px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.10);
+    }
+
+    body {
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: #c8eec8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+    .hero img {
+      width: 100%;
+      display: block;
+      max-height: 260px;
+      object-fit: cover;
+      object-position: bottom;
+    }
+    .hero-title {
+      position: absolute;
+      top: 16px;
+      left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+    .hero-title h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+      letter-spacing: .3px;
+    }
+    .hero-title h1 span { color: var(--yellow); }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.25);
+      border: none;
+      cursor: pointer;
+      font-size: 1.3rem;
+      padding: 7px 9px;
+      border-radius: 50%;
+      backdrop-filter: blur(4px);
+      transition: background .2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.4); }
+
+    /* ── Content area ── */
+    .content {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 12px 36px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--card-border);
+    }
+
+    .section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Balance card ── */
+    .balance-card {
+      background: linear-gradient(135deg, #5DBB63, #4aab50);
+      border: none;
+      color: #fff;
+    }
+    .balance-card .section-title { color: rgba(255,255,255,0.75); }
+
+    .balance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .balance-num {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #fff;
+    }
+    .balance-unit { font-size: .8rem; color: rgba(255,255,255,0.8); margin-top: 4px; }
+    .balance-icon { font-size: 3rem; }
+
+    /* ── Game controls ── */
+    .game-controls {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      border: none;
+      border-radius: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .1s, opacity .15s, filter .15s;
+      -webkit-tap-highlight-color: transparent;
+      padding: 13px 10px;
+      font-size: .95rem;
+    }
+    .btn:active { transform: scale(.95); filter: brightness(.92); }
+    .btn:disabled { opacity: .4; cursor: default; transform: none; filter: none; }
+
+    .btn-add-game {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+      flex: 1;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      backdrop-filter: blur(2px);
+    }
+    .btn-start-game {
+      background: #fff;
+      color: var(--green2);
+      flex: 2;
+      font-size: 1rem;
+    }
+    .btn-start-game:disabled { background: rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); }
+
+    .preset-display {
+      text-align: center;
+      font-size: .82rem;
+      color: rgba(255,255,255,0.85);
+      margin-top: 8px;
+      min-height: 1.2em;
+    }
+    .preset-display span { font-weight: 800; color: #fff; }
+
+    /* ── Activity grid ── */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .act-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      border: 2.5px solid transparent;
+      border-radius: 16px;
+      padding: 14px 10px;
+      cursor: pointer;
+      transition: border-color .15s, transform .1s, filter .15s;
+      -webkit-tap-highlight-color: transparent;
+      background: #f8f9fa;
+    }
+    .act-btn:active { transform: scale(.95); filter: brightness(.95); }
+
+    .act-btn[data-act="reading"] { background: #fff8e7; }
+    .act-btn[data-act="sports"]  { background: #e8f8ee; }
+    .act-btn[data-act="chore"]   { background: #fff0f0; }
+    .act-btn[data-act="study"]   { background: #eef3ff; }
+
+    .act-btn .emoji { font-size: 2rem; }
+    .act-btn .label { font-size: .82rem; font-weight: 700; color: var(--muted); }
+    .act-btn .time  { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+
+    .act-btn.flash { animation: flash-act .35s ease; }
+    @keyframes flash-act {
+      0%   { border-color: var(--orange); transform: scale(1.04); }
+      100% { border-color: transparent; transform: scale(1); }
+    }
+
+    /* ── Undo + Convert ── */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-undo {
+      background: #f0f0f0;
+      color: var(--muted);
+    }
+    .btn-convert {
+      background: linear-gradient(135deg, var(--orange), #f5a623);
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 3px 12px rgba(245,130,60,0.35);
+    }
+
+    /* ── Countdown ── */
+    #countdown-area {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    #countdown-area.active { display: flex; }
+
+    .countdown-ring {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .countdown-ring svg { transform: rotate(-90deg); }
+    .countdown-ring circle.track {
+      fill: none;
+      stroke: rgba(255,255,255,0.3);
+      stroke-width: 9;
+    }
+    .countdown-ring circle.progress {
+      fill: none;
+      stroke: #fff;
+      stroke-width: 9;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .9s linear;
+    }
+    .countdown-num {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .countdown-num .big { font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1; }
+    .countdown-num .sub { font-size: .7rem; color: rgba(255,255,255,0.75); margin-top: 2px; }
+
+    .btn-stop-game {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      width: 100%;
+      font-size: .88rem;
+    }
+
+    /* ── Alarm overlay ── */
+    #alarm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #E8585A, #c0392b);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 100;
+      animation: alarm-bg 1s ease infinite alternate;
+    }
+    #alarm-overlay.active { display: flex; }
+    @keyframes alarm-bg {
+      from { background: linear-gradient(135deg,#E8585A,#c0392b); }
+      to   { background: linear-gradient(135deg,#ff6b6b,#E8585A); }
+    }
+    #alarm-overlay .alarm-emoji { font-size: 5rem; animation: bounce 0.6s ease infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+    #alarm-overlay .alarm-text { font-size: 1.6rem; font-weight: 900; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    #alarm-overlay .alarm-sub  { font-size: 1rem; color: rgba(255,255,255,0.85); }
+    #alarm-overlay .btn-dismiss {
+      background: #fff;
+      color: var(--red);
+      border: none;
+      border-radius: 16px;
+      padding: 15px 44px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      margin-top: 8px;
+    }
+
+    /* ── Settings modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(5px);
+      z-index: 50;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-backdrop.active { display: flex; }
+
+    .modal-sheet {
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 20px 44px;
+    }
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 12px auto 20px;
+    }
+    .modal-sheet h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 18px; color: var(--text); }
+
+    .danger-btn {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: filter .15s;
+      text-align: left;
+    }
+    .danger-btn:active { filter: brightness(.93); }
+    .danger-btn.mild   { background: #fff8e7; color: #b7880a; }
+    .danger-btn.hard   { background: #fff0f0; color: var(--red); }
+    .danger-btn.cancel { background: #f4f4f4; color: var(--muted); text-align: center; margin-top: 4px; }
+
+    /* ── Convert animation ── */
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .pop { animation: pop .4s ease; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(45,52,54,0.92);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: .85rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s, transform .3s;
+      white-space: nowrap;
+      z-index: 200;
+      backdrop-filter: blur(6px);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- Hero / Background -->
+<div class="hero">
+  <img src="pokemon-background.png" alt="Pokemon">
+  <div class="hero-title">
+    <h1>⏱ Kids <span>Time Banker</span></h1>
+    <button class="icon-btn" id="settings-btn" aria-label="设置">⚙️</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Game Balance -->
+  <div class="card balance-card">
+    <div class="section-title">🎮 游戏余额</div>
+    <div class="balance-row">
+      <div>
+        <div class="balance-num" id="balance-display">0</div>
+        <div class="balance-unit">分钟可玩</div>
+      </div>
+      <div class="balance-icon">🕹️</div>
+    </div>
+
+    <!-- Game setup -->
+    <div id="game-setup">
+      <div class="game-controls">
+        <button class="btn btn-add-game" id="add-game-btn">＋5分钟</button>
+        <button class="btn btn-start-game" id="start-game-btn" disabled>▶ 开始游戏</button>
+      </div>
+      <div class="preset-display" id="preset-display"></div>
+    </div>
+
+    <!-- Countdown -->
+    <div id="countdown-area">
+      <div class="countdown-ring">
+        <svg viewBox="0 0 150 150" width="150" height="150">
+          <circle class="track"    cx="75" cy="75" r="62"/>
+          <circle class="progress" id="ring-progress" cx="75" cy="75" r="62"
+            stroke-dasharray="389.6" stroke-dashoffset="0"/>
+        </svg>
+        <div class="countdown-num">
+          <div class="big" id="countdown-display">0:00</div>
+          <div class="sub">剩余时间</div>
+        </div>
+      </div>
+      <button class="btn btn-stop-game" id="stop-game-btn">⏹ 提前结束（退还余额）</button>
+    </div>
+  </div>
+
+  <!-- Activities -->
+  <div class="card">
+    <div class="section-title">📚 赚取时间（每次 +5 分钟）</div>
+    <div class="activity-grid">
+      <button class="act-btn" data-act="reading">
+        <span class="emoji">📖</span>
+        <span class="label">阅读</span>
+        <span class="time" id="t-reading">0 分钟</span>
+      </button>
+      <button class="act-btn" data-act="sports">
+        <span class="emoji">⚽</span>
+        <span class="label">运动</span>
+        <span class="time" id="t-sports">0 分钟</span>
+      </button>
+      <button class="act-btn" data-act="chore">
+        <span class="emoji">🧹</span>
+        <span class="label">家务</span>
+        <span class="time" id="t-chore">0 分钟</span>
+      </button>
+      <button class="act-btn" data-act="study">
+        <span class="emoji">✏️</span>
+        <span class="label">学习</span>
+        <span class="time" id="t-study">0 分钟</span>
+      </button>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-undo" id="undo-btn" disabled>↩ 撤销</button>
+      <button class="btn btn-convert" id="convert-btn">⚡ 转换游戏时间</button>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- Alarm -->
+<div id="alarm-overlay">
+  <div class="alarm-emoji">⏰</div>
+  <div class="alarm-text">游戏时间到啦！</div>
+  <div class="alarm-sub">去做点别的事吧 ✨</div>
+  <button class="btn-dismiss" id="dismiss-alarm-btn">好的，我知道了！</button>
+</div>
+
+<!-- Settings -->
+<div class="modal-backdrop" id="settings-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h2>⚙️ 设置</h2>
+    <button class="danger-btn mild" id="clear-activities-btn">🗑 清零活动记录（保留游戏余额）</button>
+    <button class="danger-btn hard" id="clear-all-btn">⚠️ 全部清零</button>
+    <button class="danger-btn cancel" id="close-settings-btn">取消</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STEP = 5;
+const RATIO = 3;
+const CIRCUMFERENCE = 2 * Math.PI * 62;
+
+let state = {
+  activities: { reading: 0, sports: 0, chore: 0, study: 0 },
+  balance: 0,
+  presetGame: 0,
+  lastAction: null
+};
+
+let gameTimer = { active: false, totalSecs: 0, remainSecs: 0, intervalId: null };
+
+// ── Wake Lock ──
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release().catch(()=>{}); wakeLock = null; }
+}
+
+// ── Alarm loop ──
+let alarmLoopId = null;
+function startAlarmLoop() {
+  alarmSound();
+  vib([300, 100, 300, 100, 300, 200, 300, 100, 300, 100, 300, 600]);
+  alarmLoopId = setInterval(() => {
+    alarmSound();
+    vib([300, 100, 300, 100, 300, 200, 300, 100, 300, 100, 300, 600]);
+  }, 3000);
+}
+function stopAlarmLoop() {
+  if (alarmLoopId) { clearInterval(alarmLoopId); alarmLoopId = null; }
+  if (navigator.vibrate) navigator.vibrate(0); // 立即停止震动
+}
+
+// ── Persistence ──
+function save() {
+  localStorage.setItem('ktb2', JSON.stringify({
+    activities: state.activities,
+    balance: state.balance,
+    presetGame: state.presetGame,
+    lastAction: state.lastAction
+  }));
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem('ktb2') || 'null');
+    if (!s) return;
+    state.activities  = s.activities  || state.activities;
+    state.balance     = s.balance     || 0;
+    state.presetGame  = s.presetGame  || 0;
+    state.lastAction  = s.lastAction  || null;
+  } catch(e) {}
+}
+
+// ── Audio ──
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function beep(freq = 880, dur = 0.2, vol = 0.4) {
+  try {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
+}
+function alarmSound() {
+  [880, 660, 880, 440].forEach((f, i) => setTimeout(() => beep(f, 0.4, 0.6), i * 350));
+}
+function vib(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+// ── Toast ──
+let toastT = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ── Render ──
+function render() {
+  ['reading','sports','chore','study'].forEach(k => {
+    document.getElementById('t-' + k).textContent = state.activities[k] + ' 分钟';
+  });
+
+  document.getElementById('balance-display').textContent = state.balance;
+  document.getElementById('undo-btn').disabled = !state.lastAction;
+
+  const pd = document.getElementById('preset-display');
+  pd.innerHTML = state.presetGame > 0
+    ? `准备玩：<span>${state.presetGame} 分钟</span>`
+    : '';
+
+  document.getElementById('start-game-btn').disabled =
+    state.presetGame === 0 || gameTimer.active;
+  document.getElementById('add-game-btn').disabled =
+    gameTimer.active || state.balance === 0 || state.presetGame >= state.balance;
+
+  const total = Object.values(state.activities).reduce((a,b)=>a+b,0);
+  document.getElementById('convert-btn').disabled = total === 0;
+}
+
+// ── Activity buttons ──
+document.querySelectorAll('.act-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (gameTimer.active) return;
+    ensureAudio();
+    const k = btn.dataset.act;
+    state.activities[k] += STEP;
+    state.lastAction = { type: 'activity', key: k, delta: STEP };
+    save(); render();
+    btn.classList.remove('flash');
+    void btn.offsetWidth;
+    btn.classList.add('flash');
+    beep(600, 0.12, 0.3); vib(25);
+  });
+});
+
+// ── Undo ──
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!state.lastAction) return;
+  const { type, key, delta } = state.lastAction;
+  if (type === 'activity') state.activities[key] = Math.max(0, state.activities[key] - delta);
+  else if (type === 'game-preset') state.presetGame = Math.max(0, state.presetGame - delta);
+  state.lastAction = null;
+  save(); render();
+  beep(300, 0.15, 0.3); vib(20);
+  toast('已撤销上一步 ↩');
+});
+
+// ── Convert ──
+document.getElementById('convert-btn').addEventListener('click', () => {
+  const total = Object.values(state.activities).reduce((a,b)=>a+b,0);
+  if (total === 0) return;
+  const earned = Math.floor(total / RATIO);
+  state.balance += earned;
+  state.activities = { reading: 0, sports: 0, chore: 0, study: 0 };
+  state.lastAction = null;
+  save(); render();
+
+  const el = document.getElementById('balance-display');
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+
+  beep(880, 0.15, 0.5); setTimeout(() => beep(1100, 0.2, 0.5), 180);
+  vib([40, 60, 120]);
+  toast(`✨ 赚到 ${earned} 分钟游戏时间！`);
+});
+
+// ── Add game preset ──
+document.getElementById('add-game-btn').addEventListener('click', () => {
+  if (state.presetGame + STEP > state.balance) return;
+  ensureAudio();
+  state.presetGame += STEP;
+  state.lastAction = { type: 'game-preset', key: null, delta: STEP };
+  save(); render();
+  beep(700, 0.1, 0.25); vib(20);
+});
+
+// ── Start game ──
+document.getElementById('start-game-btn').addEventListener('click', () => {
+  if (state.presetGame === 0 || gameTimer.active) return;
+  state.balance -= state.presetGame;
+  gameTimer.totalSecs = state.presetGame * 60;
+  gameTimer.remainSecs = gameTimer.totalSecs;
+  gameTimer.active = true;
+  state.presetGame = 0;
+  save();
+
+  requestWakeLock();
+  requestNotificationPermission();
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('countdown-area').classList.add('active');
+  render(); updateRing();
+
+  gameTimer.intervalId = setInterval(() => {
+    gameTimer.remainSecs--;
+    updateRing();
+    if (gameTimer.remainSecs <= 0) endGame(false);
+  }, 1000);
+});
+
+// ── Stop early ──
+document.getElementById('stop-game-btn').addEventListener('click', () => {
+  const mins = Math.floor(gameTimer.remainSecs / 60);
+  endGame(true, mins);
+  if (mins > 0) toast(`退还 ${mins} 分钟 💰`);
+});
+
+// ── End game ──
+function endGame(early, refund = 0) {
+  clearInterval(gameTimer.intervalId);
+  gameTimer.active = false;
+  if (early && refund > 0) { state.balance += refund; save(); }
+  document.getElementById('countdown-area').classList.remove('active');
+  document.getElementById('game-setup').style.display = '';
+  render();
+  if (!early) {
+    triggerAlarm();
+  } else {
+    releaseWakeLock();
+  }
+}
+
+// ── Ring ──
+function updateRing() {
+  const r = gameTimer.remainSecs, t = gameTimer.totalSecs;
+  const m = Math.floor(r/60), s = r%60;
+  document.getElementById('countdown-display').textContent =
+    m + ':' + String(s).padStart(2,'0');
+  const offset = CIRCUMFERENCE * (1 - r/t);
+  const ring = document.getElementById('ring-progress');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = r <= 60 ? '#ffb3b3' : r <= 180 ? '#ffe082' : '#fff';
+}
+
+// ── Notification permission ──
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function sendSystemNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  navigator.serviceWorker.ready.then(reg => {
+    reg.showNotification('游戏时间到啦！⏰', {
+      body: '去做点别的事吧 ✨',
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      vibrate: [300, 100, 300, 100, 300, 200, 300, 100, 300, 100, 300],
+      tag: 'game-timer',
+      requireInteraction: true
+    });
+  }).catch(() => {});
+}
+
+// ── Alarm ──
+function triggerAlarm() {
+  if (document.visibilityState === 'hidden') {
+    // 屏幕灭：只发系统通知，并标记待处理，切回前台时再弹 in-app
+    pendingAlarm = true;
+    sendSystemNotification();
+  } else {
+    // 屏幕亮：只用 in-app 警报
+    document.getElementById('alarm-overlay').classList.add('active');
+    startAlarmLoop();
+  }
+}
+
+// 万一用户从后台切回来，检查是否有未处理的警报
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && pendingAlarm) {
+    pendingAlarm = false;
+    document.getElementById('alarm-overlay').classList.add('active');
+    startAlarmLoop();
+  }
+});
+let pendingAlarm = false;
+
+document.getElementById('dismiss-alarm-btn').addEventListener('click', () => {
+  stopAlarmLoop();
+  releaseWakeLock();
+  document.getElementById('alarm-overlay').classList.remove('active');
+});
+
+// ── Settings ──
+document.getElementById('settings-btn').addEventListener('click', () => {
+  document.getElementById('settings-modal').classList.add('active');
+});
+document.getElementById('close-settings-btn').addEventListener('click', () => {
+  document.getElementById('settings-modal').classList.remove('active');
+});
+document.getElementById('settings-modal').addEventListener('click', e => {
+  if (e.target.id === 'settings-modal')
+    document.getElementById('settings-modal').classList.remove('active');
+});
+document.getElementById('clear-activities-btn').addEventListener('click', () => {
+  if (!confirm('确定清零所有活动记录？游戏余额保留。')) return;
+  state.activities = { reading:0, sports:0, chore:0, study:0 };
+  state.lastAction = null;
+  save(); render();
+  document.getElementById('settings-modal').classList.remove('active');
+  toast('活动记录已清零');
+});
+document.getElementById('clear-all-btn').addEventListener('click', () => {
+  if (!confirm('确定全部清零？活动记录和游戏余额都将清空，无法恢复！')) return;
+  state = { activities:{reading:0,sports:0,chore:0,study:0}, balance:0, presetGame:0, lastAction:null };
+  save(); render();
+  document.getElementById('settings-modal').classList.remove('active');
+  toast('所有数据已清零');
+});
+
+// ── PWA ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+// ── Init ──
+load(); render();
+</script>
+</body>
+</html>
