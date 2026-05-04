@@ -138,17 +138,9 @@
     .balance-unit { font-size: .8rem; color: rgba(255,255,255,0.8); margin-top: 4px; }
     .balance-icon { font-size: 3rem; }
 
-    /* ── Game area fixed wrapper ── */
-    .game-area {
-      margin-top: 12px;
-      height: 160px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
     /* ── Game controls ── */
     .game-controls {
+      margin-top: 14px;
       display: flex;
       gap: 10px;
     }
@@ -247,17 +239,17 @@
     /* ── Countdown ── */
     #countdown-area {
       display: none;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      margin-top: 14px;
     }
     #countdown-area.active { display: flex; }
 
     .countdown-ring {
       position: relative;
-      width: 100px;
-      height: 100px;
-      flex-shrink: 0;
+      width: 150px;
+      height: 150px;
     }
     .countdown-ring svg { transform: rotate(-90deg); }
     .countdown-ring circle.track {
@@ -280,16 +272,15 @@
       align-items: center;
       justify-content: center;
     }
-    .countdown-num .big { font-size: 1.5rem; font-weight: 900; color: #fff; line-height: 1; }
-    .countdown-num .sub { font-size: .6rem; color: rgba(255,255,255,0.75); margin-top: 2px; }
+    .countdown-num .big { font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1; }
+    .countdown-num .sub { font-size: .7rem; color: rgba(255,255,255,0.75); margin-top: 2px; }
 
     .btn-stop-game {
       background: rgba(255,255,255,0.2);
       color: #fff;
       border: 1.5px solid rgba(255,255,255,0.5);
-      flex: 1;
-      font-size: .82rem;
-      line-height: 1.3;
+      width: 100%;
+      font-size: .88rem;
     }
 
     /* ── Alarm overlay ── */
@@ -427,34 +418,29 @@
       <div class="balance-icon">🕹️</div>
     </div>
 
-    <!-- Fixed-height game area -->
-    <div class="game-area">
-
-      <!-- Game setup -->
-      <div id="game-setup">
-        <div class="game-controls">
-          <button class="btn btn-add-game" id="add-game-btn">＋5分钟</button>
-          <button class="btn btn-start-game" id="start-game-btn" disabled>▶ 开始游戏</button>
-        </div>
-        <div class="preset-display" id="preset-display"></div>
+    <!-- Game setup -->
+    <div id="game-setup">
+      <div class="game-controls">
+        <button class="btn btn-add-game" id="add-game-btn">＋5分钟</button>
+        <button class="btn btn-start-game" id="start-game-btn" disabled>▶ 开始游戏</button>
       </div>
+      <div class="preset-display" id="preset-display"></div>
+    </div>
 
-      <!-- Countdown -->
-      <div id="countdown-area">
-        <div class="countdown-ring">
-          <svg viewBox="0 0 150 150" width="100" height="100">
-            <circle class="track"    cx="75" cy="75" r="62"/>
-            <circle class="progress" id="ring-progress" cx="75" cy="75" r="62"
-              stroke-dasharray="389.6" stroke-dashoffset="0"/>
-          </svg>
-          <div class="countdown-num">
-            <div class="big" id="countdown-display">0:00</div>
-            <div class="sub">剩余时间</div>
-          </div>
+    <!-- Countdown -->
+    <div id="countdown-area">
+      <div class="countdown-ring">
+        <svg viewBox="0 0 150 150" width="150" height="150">
+          <circle class="track"    cx="75" cy="75" r="62"/>
+          <circle class="progress" id="ring-progress" cx="75" cy="75" r="62"
+            stroke-dasharray="389.6" stroke-dashoffset="0"/>
+        </svg>
+        <div class="countdown-num">
+          <div class="big" id="countdown-display">0:00</div>
+          <div class="sub">剩余时间</div>
         </div>
-        <button class="btn btn-stop-game" id="stop-game-btn">⏹ 提前结束（退还余额）</button>
       </div>
-
+      <button class="btn btn-stop-game" id="stop-game-btn">⏹ 提前结束（退还余额）</button>
     </div>
   </div>
 
