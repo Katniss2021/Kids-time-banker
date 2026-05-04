@@ -30,14 +30,14 @@
     }
 
     body {
-      min-height: 100dvh;
+      height: 100dvh;
+      overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
       color: var(--text);
       background: #c8eec8;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
     }
 
     /* ── Hero ── */
@@ -49,7 +49,7 @@
     .hero img {
       width: 100%;
       display: block;
-      max-height: 260px;
+      max-height: 185px;
       object-fit: cover;
       object-position: bottom;
     }
@@ -87,10 +87,13 @@
     .content {
       width: 100%;
       max-width: 480px;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding: 12px 12px 36px;
+      padding: 12px 12px 24px;
     }
 
     /* ── Cards ── */
@@ -503,7 +506,7 @@ let state = {
   activities: { reading: 0, sports: 0, chore: 0, study: 0 },
   balance: 0,
   presetGame: 0,
-  lastAction: null
+  undoStack: []  // each item: { type, key, delta }
 };
 
 let gameTimer = { active: false, totalSecs: 0, remainSecs: 0, intervalId: null };
@@ -535,22 +538,28 @@ function stopAlarmLoop() {
 }
 
 // ── Persistence ──
+const UNDO_LIMIT = 30;
+function pushUndo(action) {
+  state.undoStack.push(action);
+  if (state.undoStack.length > UNDO_LIMIT) state.undoStack.shift();
+}
+
 function save() {
   localStorage.setItem('ktb2', JSON.stringify({
     activities: state.activities,
     balance: state.balance,
     presetGame: state.presetGame,
-    lastAction: state.lastAction
+    undoStack: state.undoStack
   }));
 }
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem('ktb2') || 'null');
     if (!s) return;
-    state.activities  = s.activities  || state.activities;
-    state.balance     = s.balance     || 0;
-    state.presetGame  = s.presetGame  || 0;
-    state.lastAction  = s.lastAction  || null;
+    state.activities = s.activities || state.activities;
+    state.balance    = s.balance    || 0;
+    state.presetGame = s.presetGame || 0;
+    state.undoStack  = Array.isArray(s.undoStack) ? s.undoStack : [];
   } catch(e) {}
 }
 
@@ -592,7 +601,10 @@ function render() {
   });
 
   document.getElementById('balance-display').textContent = state.balance;
-  document.getElementById('undo-btn').disabled = !state.lastAction;
+  const undoCount = state.undoStack.length;
+  const undoBtn = document.getElementById('undo-btn');
+  undoBtn.disabled = undoCount === 0;
+  undoBtn.textContent = undoCount > 0 ? `↩ 撤销 (${undoCount})` : '↩ 撤销';
 
   const pd = document.getElementById('preset-display');
   pd.innerHTML = state.presetGame > 0
@@ -615,7 +627,7 @@ document.querySelectorAll('.act-btn').forEach(btn => {
     ensureAudio();
     const k = btn.dataset.act;
     state.activities[k] += STEP;
-    state.lastAction = { type: 'activity', key: k, delta: STEP };
+    pushUndo({ type: 'activity', key: k, delta: STEP });
     save(); render();
     btn.classList.remove('flash');
     void btn.offsetWidth;
@@ -626,14 +638,13 @@ document.querySelectorAll('.act-btn').forEach(btn => {
 
 // ── Undo ──
 document.getElementById('undo-btn').addEventListener('click', () => {
-  if (!state.lastAction) return;
-  const { type, key, delta } = state.lastAction;
+  if (state.undoStack.length === 0) return;
+  const { type, key, delta } = state.undoStack.pop();
   if (type === 'activity') state.activities[key] = Math.max(0, state.activities[key] - delta);
   else if (type === 'game-preset') state.presetGame = Math.max(0, state.presetGame - delta);
-  state.lastAction = null;
   save(); render();
   beep(300, 0.15, 0.3); vib(20);
-  toast('已撤销上一步 ↩');
+  toast(`已撤销 ↩ 还可再撤销 ${state.undoStack.length} 步`);
 });
 
 // ── Convert ──
@@ -643,7 +654,7 @@ document.getElementById('convert-btn').addEventListener('click', () => {
   const earned = Math.floor(total / RATIO);
   state.balance += earned;
   state.activities = { reading: 0, sports: 0, chore: 0, study: 0 };
-  state.lastAction = null;
+  state.undoStack = [];
   save(); render();
 
   const el = document.getElementById('balance-display');
@@ -659,7 +670,7 @@ document.getElementById('add-game-btn').addEventListener('click', () => {
   if (state.presetGame + STEP > state.balance) return;
   ensureAudio();
   state.presetGame += STEP;
-  state.lastAction = { type: 'game-preset', key: null, delta: STEP };
+  pushUndo({ type: 'game-preset', key: null, delta: STEP });
   save(); render();
   beep(700, 0.1, 0.25); vib(20);
 });
@@ -792,7 +803,7 @@ document.getElementById('clear-activities-btn').addEventListener('click', () => 
 });
 document.getElementById('clear-all-btn').addEventListener('click', () => {
   if (!confirm('确定全部清零？活动记录和游戏余额都将清空，无法恢复！')) return;
-  state = { activities:{reading:0,sports:0,chore:0,study:0}, balance:0, presetGame:0, lastAction:null };
+  state = { activities:{reading:0,sports:0,chore:0,study:0}, balance:0, presetGame:0, undoStack:[] };
   save(); render();
   document.getElementById('settings-modal').classList.remove('active');
   toast('所有数据已清零');
