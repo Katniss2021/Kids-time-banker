@@ -57,21 +57,23 @@
     }
     .hero-title {
       position: absolute;
-      top: 16px;
-      left: 0; right: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
+      bottom: 12px;
+      left: 14px;
     }
     .hero-title h1 {
-      font-size: 1.15rem;
+      font-size: 1rem;
       font-weight: 800;
       color: #fff;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.3);
       letter-spacing: .3px;
     }
     .hero-title h1 span { color: var(--yellow); }
+
+    .hero-settings {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
 
     .icon-btn {
       background: rgba(255,255,255,0.25);
@@ -401,6 +403,8 @@
   <img src="pokemon-background.png" alt="Pokemon">
   <div class="hero-title">
     <h1>⏱ Kids <span>Time Banker</span></h1>
+  </div>
+  <div class="hero-settings">
     <button class="icon-btn" id="settings-btn" aria-label="设置">⚙️</button>
   </div>
 </div>
